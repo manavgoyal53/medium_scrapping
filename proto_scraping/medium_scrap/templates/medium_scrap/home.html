@@ -1,0 +1,39 @@
+{%extends 'medium_scrap/base.html' %}
+{%block content%}
+{%if not user.is_authenticated %}
+
+{%else%}
+    <br>
+    <h1>Search History</h1>
+    <br>
+    {%for obj in history%}
+    <div class="card" style="width: 16rem;">
+        <div class="card-body">
+        {{obj.tag.keyword}}
+        </div>
+    </div>
+    {%endfor%}
+{%endif%}
+{%endblock%}
+{%block tagscript%}
+<script>
+    async function logSubmit(event) {
+        event.preventDefault();
+        keyword = await document.getElementById('keyword').value;
+        console.log(keyword)
+        var xhttp = new XMLHttpRequest(); 
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                var myObj = JSON.parse(this.responseText);
+                console.log(myObj);
+            }
+        };
+        xhttp.open("GET", "/tags_query/"+keyword+"/0", true);
+        xhttp.send()
+    }
+    const form = document.getElementById('keyform');
+    form.addEventListener('submit', logSubmit);
+    let keyword;
+
+</script>
+{%endblock%}

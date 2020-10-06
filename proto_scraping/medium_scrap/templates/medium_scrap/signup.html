@@ -1,0 +1,17 @@
+{%extends 'medium_scrap/base.html' %}
+{%block content%}
+<h1 class = "text-center"> SignUp </h1>
+<br>
+<div class = "col-md-6 offset-md-3">
+  <form method="POST">
+    {% csrf_token %}
+      <input type="username" class="form-control" placeholder="Username" name= "username">
+      <br>
+      <input type="password" class="form-control" placeholder="Password" name = "password1">
+      <br>
+      <input type="password" class="form-control" placeholder="Re-enter Password" name = "password2">
+      <br>
+      <button type="submit" class="btn btn-primary">Sign Up</button>
+  </form>
+</div>
+{%endblock%}
