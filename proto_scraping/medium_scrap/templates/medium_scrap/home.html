@@ -1,39 +1,50 @@
 {%extends 'medium_scrap/base.html' %}
 {%block content%}
+<div class="container">
 {%if not user.is_authenticated %}
 
 {%else%}
     <br>
     <h1>Search History</h1>
-    <br>
-    {%for obj in history%}
-    <div class="card" style="width: 16rem;">
-        <div class="card-body">
-        {{obj.tag.keyword}}
-        </div>
-    </div>
-    {%endfor%}
+    <hr>
+    <ul class='list-group list-group-horizontal'>
+        {%for obj in history%}
+            <li class="list-group-item">{{obj.tag.keyword}}</li>
+        {%endfor%}
+    </ul>
+
 {%endif%}
+</div>
 {%endblock%}
 {%block tagscript%}
-<script>
-    async function logSubmit(event) {
+<script type="text/javascript">
+    let page = 0;
+    $('#keyform').submit(function logSubmit(event) {
         event.preventDefault();
-        keyword = await document.getElementById('keyword').value;
-        console.log(keyword)
-        var xhttp = new XMLHttpRequest(); 
-        xhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-                var myObj = JSON.parse(this.responseText);
-                console.log(myObj);
+        var csrf = $('input[name=csrfmiddlewaretoken]').val();
+        let keyword = $('#keyword').val();
+        $.ajax({
+            method: "POST",
+            url: `/tags_query/${keyword}/${page}`,
+            data: {'csrfmiddlewaretoken': csrf}
+        }).done(function(response){
+            let sim_tags = response.sim_tags;
+            let blog_list = response.blog_list;
+            let innerhtml = "<br><h2>Tags related to your search:</h2><hr><ul class='list-group list-group-horizontal'>";
+            for(let i=0;i<sim_tags.length;i++){
+                innerhtml+="<li class='list-group-item'>"+sim_tags[i]+"</li>";
             }
-        };
-        xhttp.open("GET", "/tags_query/"+keyword+"/0", true);
-        xhttp.send()
-    }
-    const form = document.getElementById('keyform');
-    form.addEventListener('submit', logSubmit);
-    let keyword;
+            innerhtml+="</ul><br><h1>Your Search results:</h1><br>"
+            for(let i=0;i<blog_list.length;i++){
+                let title = blog_list[i]['heading'];
+                let sub_head = blog_list[i]['sub_head'];
+                let url = blog_list[i]['url'];
+                let author = blog_list[i]['author_name'];
+                innerhtml+="<div class='card'><div class='card-body'><h5 class='card-title'>"+title+"</h5><h6 class='card-subtitle mb-2 text-muted'>"+sub_head+"</h6><p class='card-text'>By "+author+"</p></div></div>"
+            }
+            $('.container').html(innerhtml);
+        })
+    });
 
 </script>
 {%endblock%}

@@ -9,5 +9,6 @@ urlpatterns = [
     path('signup/', views.signup_user, name='signup'),
     path('logout/', views.logout_user, name='logout'),
     path('tags_query/<str:tag>/<int:page>',views.tags_query,name='tag'),
+    path('article/<path:article_url>',views.article,name='article'),
 ]
 
