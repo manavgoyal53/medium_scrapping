@@ -18,33 +18,60 @@
 {%endblock%}
 {%block tagscript%}
 <script type="text/javascript">
-    let page = 0;
+    
+    let page;
+    let keyword = '';
+
+    function rendering_blogs(response){
+        let sim_tags = response.sim_tags;
+        let blog_list = response.blog_list;
+        let innerhtml = "<br><h2>Tags related to your search:</h2><hr><ul class='list-group list-group-horizontal'>";
+        for(let i=0;i<sim_tags.length;i++){
+            innerhtml+="<li class='list-group-item'>"+sim_tags[i]+"</li>";
+        }
+        innerhtml+="</ul><br><h1>Your Search results:</h1><br>"
+        let n_blogs = blog_list.length;
+        for(let i=0;i<n_blogs;i++){
+            let title = blog_list[i]['heading'];
+            let sub_head = blog_list[i]['sub_head'];
+            let url = '/article/'+blog_list[i]['url'];
+            let author = blog_list[i]['author_name'];
+            innerhtml+="<div class='card'><div class='card-body'><h5 class='card-title'>"+title+"</h5><h6 class='card-subtitle mb-2 text-muted'>"+sub_head+"</h6><p class='card-text'>By "+author+"</p><a href='"+url+"' class='btn btn-primary'>View Blog</a></div></div>"
+        }
+        if(n_blogs<10){
+            innerhtml+="<br><button type='button' id='nextbtn' onclick='next()' class='btn btn-primary btn-lg' disabled>Next</button>"
+        }
+        else{
+            innerhtml+="<br><button type='button' id='nextbtn' onclick='next()' class='btn btn-primary btn-lg'>Next</button>"
+        }
+        $('.container').html(innerhtml);
+    }
+
     $('#keyform').submit(function logSubmit(event) {
         event.preventDefault();
         var csrf = $('input[name=csrfmiddlewaretoken]').val();
-        let keyword = $('#keyword').val();
+        keyword = $('#keyword').val();
+        page = 0;
         $.ajax({
             method: "POST",
             url: `/tags_query/${keyword}/${page}`,
             data: {'csrfmiddlewaretoken': csrf}
         }).done(function(response){
-            let sim_tags = response.sim_tags;
-            let blog_list = response.blog_list;
-            let innerhtml = "<br><h2>Tags related to your search:</h2><hr><ul class='list-group list-group-horizontal'>";
-            for(let i=0;i<sim_tags.length;i++){
-                innerhtml+="<li class='list-group-item'>"+sim_tags[i]+"</li>";
-            }
-            innerhtml+="</ul><br><h1>Your Search results:</h1><br>"
-            for(let i=0;i<blog_list.length;i++){
-                let title = blog_list[i]['heading'];
-                let sub_head = blog_list[i]['sub_head'];
-                let url = blog_list[i]['url'];
-                let author = blog_list[i]['author_name'];
-                innerhtml+="<div class='card'><div class='card-body'><h5 class='card-title'>"+title+"</h5><h6 class='card-subtitle mb-2 text-muted'>"+sub_head+"</h6><p class='card-text'>By "+author+"</p></div></div>"
-            }
-            $('.container').html(innerhtml);
+            rendering_blogs(response);
         })
     });
 
+    function next(){
+        console.log("Clicked");
+        var csrf = $('input[name=csrfmiddlewaretoken]').val();
+        page+=1;
+        $.ajax({
+            method: "POST",
+            url: `/tags_query/${keyword}/${page}`,
+            data: {'csrfmiddlewaretoken': csrf}
+        }).done(function(response){
+            rendering_blogs(response);
+        })
+    }
 </script>
 {%endblock%}

@@ -9,3 +9,12 @@ class SearchHistory(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE)
     tag = models.ForeignKey(Tag,on_delete=models.CASCADE,default=None)
     datetime = models.DateTimeField(auto_now_add=True)
+
+class Article(models.Model):
+    url = models.TextField()
+    author = models.CharField(max_length=60)
+    title = models.CharField(max_length=255)
+    sub_title = models.CharField(max_length=255)
+    responses = models.CharField(max_length=15)
+    claps = models.CharField(max_length=15)
+    tags = models.ManyToManyField(Tag)

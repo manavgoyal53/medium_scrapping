@@ -5,10 +5,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.auth.models import User
-from .models import SearchHistory, Tag
+from .models import SearchHistory, Tag, Article
 import json
-import selenium
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 import time
 
@@ -21,14 +21,22 @@ def home(request):
         context = {'history':history}
     return render(request,'medium_scrap/home.html',context)
 
+@csrf_protect
 @login_required
 def article(request,article_url):
     chrome_options = Options()
     chrome_options.add_argument('--no-sandbox')
     chrome_options.add_argument('--headless')
+    # obj, created = Article.objects.get_or_create(url=article_url)
+    # if created:
     driver = webdriver.Chrome(executable_path='chromedriver',chrome_options=chrome_options)
     driver.get(article_url)
+    time.sleep(1)
+    related_tags = driver.find_elements_by_tag_name('li')
+    print(related_tags)
     driver.close()
+    data = json.dumps(dict())
+    
 
 @csrf_protect
 @login_required
@@ -39,12 +47,15 @@ def tags_query(request,tag,page):
     chrome_options.add_argument('--headless')
     driver = webdriver.Chrome(executable_path='chromedriver',chrome_options=chrome_options)
     url = 'https://medium.com/tag/'+tag
-    Tag.objects.get_or_create(keyword=tag)
+    user = User.objects.get(username=request.user)
+    object, created= Tag.objects.get_or_create(keyword=tag)
+    SearchHistory.objects.get_or_create(user=user,tag=object)
     driver.get(url)
     time.sleep(1)
     content_list = []
-    # driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    elements = driver.find_elements_by_css_selector('.streamItem.streamItem--postPreview.js-streamItem')
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    time.sleep(9)
+    elements = driver.find_elements_by_css_selector('.streamItem.streamItem--postPreview.js-streamItem')[page*10:(page+1)*10]
     similar_tags = driver.find_element_by_css_selector('.tags.tags--postTags.tags--light').find_elements_by_tag_name('li')
     sim_tags=[]
     for tag in similar_tags:
@@ -52,10 +63,35 @@ def tags_query(request,tag,page):
     for element in elements:
         blog_details = dict()
         main_element = element.find_element_by_tag_name('div').find_element_by_tag_name('div')
-        blog_details['url'] = main_element.find_element_by_css_selector('.postArticle-readMore').find_element_by_tag_name('a').get_attribute('href')
-        blog_details['author_name'] = main_element.find_element_by_css_selector('.u-clearfix.u-marginBottom15.u-paddingTop5').find_element_by_tag_name('div').find_element_by_tag_name('div').find_element_by_css_selector('.postMetaInline.postMetaInline-authorLockup.ui-captionStrong.u-flex1.u-noWrapWithEllipsis').find_element_by_css_selector('.ds-link.ds-link--styleSubtle.link.link--darken.link--accent.u-accentColor--textNormal.u-accentColor--textDarken').text
-        blog_details['heading'] = main_element.find_element_by_tag_name('h3').text
-        blog_details['sub_head'] = main_element.find_element_by_tag_name('h4').text
+        url = blog_details['url'] = main_element.find_element_by_css_selector('.postArticle-readMore').find_element_by_tag_name('a').get_attribute('href')
+        article_obj,created = Article.objects.get_or_create(url=url)
+        if created:
+            blog_details['author_name'] = main_element.find_element_by_css_selector('.u-clearfix.u-marginBottom15.u-paddingTop5').find_element_by_tag_name('div').find_element_by_tag_name('div').find_element_by_css_selector('.postMetaInline.postMetaInline-authorLockup.ui-captionStrong.u-flex1.u-noWrapWithEllipsis').find_element_by_css_selector('.ds-link.ds-link--styleSubtle.link.link--darken.link--accent.u-accentColor--textNormal.u-accentColor--textDarken').text
+            blog_details['heading'] = main_element.find_element_by_tag_name('h3').text
+            article_obj.author = blog_details['author_name']
+            article_obj.title = blog_details['heading']
+            claps_resp = main_element.find_element_by_css_selector('.u-clearfix.u-paddingTop10')
+            try:
+                claps = claps_resp.find_element_by_class_name('.u-floatLeft').find_element_by_tag_name('div').find_element_by_tag_name('span').find_element_by_tag_name('button').text
+            except NoSuchElementException:
+                claps = str(0)
+            try:
+                resp = claps_resp.find_element_by_css_selector('.buttonSet.u-floatRight').find_element_by_tag_name('a').get_attribute('text')
+            except NoSuchElementException:
+                resp = str(0)
+            try:
+                blog_details['sub_head'] = main_element.find_element_by_tag_name('h4').text
+            except NoSuchElementException:
+                blog_details['sub_head'] = ''
+            article_obj.sub_title = blog_details['sub_head']
+            article_obj.claps = claps
+            article_obj.responses = resp
+            article_obj.save()
+        else:
+            blog_details['author_name'] = article_obj.author
+            blog_details['sub_head'] = article_obj.sub_title
+            blog_details['heading'] = article_obj.title
+
         content_list.append(blog_details)
 
     driver.close()
