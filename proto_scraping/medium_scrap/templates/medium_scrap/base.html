@@ -26,7 +26,6 @@
               </a>
               <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                 <li><a class="dropdown-item" href="{%url 'logout'%}">Logout</a></li>
-                <li><a class="dropdown-item" href="#">Another action</a></li>
               </ul>
             </li>
           </ul> 
@@ -39,13 +38,8 @@
             </li>
           </ul>
           {%endif%}
-          {% if user.is_authenticated %}
-          <form id="keyform" class="d-flex">
-            {%csrf_token%}
-            <input id="keyword" class="form-control mr-2" type="search" placeholder="Search" aria-label="Search">
-            <button class="btn btn-outline-success" type="submit">Search</button>
-          </form>
-          {%endif%}
+          {%block form%}
+          {%endblock%}
         </div>
       </div>
     </nav>

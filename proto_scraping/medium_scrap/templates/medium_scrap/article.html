@@ -1,0 +1,21 @@
+{%extends 'medium_scrap/base.html' %}
+
+{%block content%}
+<div class="container">
+    <br>
+    <h1>{{article.title}}</h1>
+    <h2>{{article.sub_title}}</h2>
+    <h3>By {{article.author}}</h3>
+    <h4>Respones: {{article.responses}}</h4>
+    <h4>Claps: {{article.claps}}</h4>
+    <h5>Source: <a href={{article.url}}>{{article.url}}</a></h5>
+    <h5>Similar Tags:</h5>
+    <hr>
+    <ul class='list-group list-group-horizontal'>
+        {%for obj in similar_tags%}
+        <li class='list-group-item'>{{obj.keyword}}</li>
+        {%endfor%}
+    </ul>
+
+</div>
+{%endblock%}

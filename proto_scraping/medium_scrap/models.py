@@ -11,7 +11,7 @@ class SearchHistory(models.Model):
     datetime = models.DateTimeField(auto_now_add=True)
 
 class Article(models.Model):
-    url = models.TextField()
+    url = models.URLField(max_length=200)
     author = models.CharField(max_length=60)
     title = models.CharField(max_length=255)
     sub_title = models.CharField(max_length=255)
