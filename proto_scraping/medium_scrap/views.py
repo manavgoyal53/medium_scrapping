@@ -71,7 +71,7 @@ def tags_query(request,tag,page):
     for element in elements:
         blog_details = dict()
         main_element = element.find_element_by_tag_name('div').find_element_by_tag_name('div')
-        url = main_element.find_element_by_css_selector('.postArticle-readMore').find_element_by_tag_name('a').get_attribute('href')
+        url = main_element.find_element_by_class_name('postArticle-readMore').find_element_by_tag_name('a').get_attribute('href')
         url = blog_details['url'] = url.split('?')[0]
         article_obj,created = Article.objects.get_or_create(url=url)
         if created:
