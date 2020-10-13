@@ -50,7 +50,6 @@ def tags_query(request,tag,page):
     tag = tag.lower()
     chrome_options = Options()
     chrome_options.add_argument('--no-sandbox')
-    chrome_options.add_argument('--headless')
     driver = webdriver.Chrome(executable_path='chromedriver',chrome_options=chrome_options)
     url = 'https://medium.com/tag/'+tag
     user = User.objects.get(username=request.user)
