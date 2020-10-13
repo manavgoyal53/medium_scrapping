@@ -67,6 +67,7 @@ def tags_query(request,tag,page):
     sim_tags=[]
     for tag in similar_tags:
         sim_tags.append(tag.find_element_by_tag_name('a').get_attribute('text'))
+    print(elements)
     for element in elements:
         blog_details = dict()
         main_element = element.find_element_by_tag_name('div').find_element_by_tag_name('div')
