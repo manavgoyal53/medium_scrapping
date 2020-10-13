@@ -56,6 +56,7 @@ def tags_query(request,tag,page):
     user = User.objects.get(username=request.user)
     object, created= Tag.objects.get_or_create(keyword=tag)
     SearchHistory.objects.get_or_create(user=user,tag=object)
+    driver.set_window_size(1920, 1080)
     driver.get(url)
     time.sleep(1)
     content_list = []
