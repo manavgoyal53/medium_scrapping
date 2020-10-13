@@ -58,7 +58,7 @@ def tags_query(request,tag,page):
     SearchHistory.objects.get_or_create(user=user,tag=object)
     driver.set_window_size(1920, 1080)
     driver.get(url)
-    time.sleep(1)
+    time.sleep(5)
     content_list = []
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
     time.sleep(9)
